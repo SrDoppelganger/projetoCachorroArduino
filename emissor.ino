@@ -1,5 +1,3 @@
-#CÓDIGO FEITO PARA O ARDUINO MEGA2560, CONSULTE A PINAGEM SPI DO SEU MODELO ANTES DE RODAR
-
 #include "SPI.h" 
 #include "RF24.h" 
 #include "nRF24L01.h" 
@@ -10,22 +8,36 @@
 RF24 radio(CE_PIN, CSN_PIN); 
 const byte address[6] = "00001"; 
 //NRF24L01 buffer limit is 32 bytes (max struct size) 
+//TODO enviar somente byte comando[6]
 struct payload { 
 	 byte data1; 
 	 char data2; 
 }; 
 payload payload; 
 
-//var do botão
-const int buttonPin = 2;
-int lastButtonState; 
-int currentButtonState;
+//botões e seus respectivos estados
+const int andarPin = 2;
+int lastAndarState; 
+int currentAndarState;
+
+const int girarPin = 3;
+int lastGirarState; 
+int currentGirarState;
 
 void setup() 
 { 
 	 Serial.begin(115200); 
-   pinMode(buttonPin, INPUT_PULLUP);
-   currentButtonState = digitalRead(buttonPin);
+
+   //setup dos botões
+   pinMode(andarPin, INPUT_PULLUP);
+   currentAndarState = digitalRead(andarPin);
+  
+   
+   pinMode(girarPin, INPUT_PULLUP);
+   currentGirarState = digitalRead(girarPin);
+
+
+   //setup do wifi
 	 radio.begin(); 
 	 //Append ACK packet from the receiving radio back to the transmitting radio 
 	 radio.setAutoAck(false); //(true|false) 
@@ -41,19 +53,39 @@ void setup()
 } 
 void loop() 
 { 
-	lastButtonState = currentButtonState; 
-  currentButtonState = digitalRead(buttonPin);
+	lastAndarState = currentAndarState; 
+  currentAndarState = digitalRead(andarPin);
 
-  if(lastButtonState == HIGH && currentButtonState == LOW) {
+  lastGirarState = currentGirarState; 
+  currentGirarState = digitalRead(girarPin);
+
+  if(lastAndarState == HIGH && currentAndarState == LOW) {
     Serial.println("The button is pressed");
     // envia os dados
-    sendCorrer();
+    sendAndar();
+  }
+  if(lastGirarState == HIGH && currentGirarState == LOW) {
+    Serial.println("The button is pressed");
+    // envia os dados
+    sendGirar();
   }
 } 
 
-void sendCorrer(){
+void sendAndar(){
   payload.data1 = 123; 
 	payload.data2 = 'x'; 
+	radio.write(&payload, sizeof(payload)); 
+	Serial.print("Data1:"); 
+	Serial.println(payload.data1); 
+	Serial.print("Data2:"); 
+	Serial.println(payload.data2); 
+	Serial.println("Sent"); 
+	delay(INTERVAL_MS_TRANSMISSION); 
+}
+
+void sendGirar(){
+  payload.data1 = 345; 
+	payload.data2 = 'y'; 
 	radio.write(&payload, sizeof(payload)); 
 	Serial.print("Data1:"); 
 	Serial.println(payload.data1); 
