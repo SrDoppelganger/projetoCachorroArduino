@@ -28,6 +28,10 @@ const int trotarPin = 4;
 int lastTrotarState; 
 int currentTrotarState;
 
+const int pularPin = 5;
+int lastPularState; 
+int currentPularState;
+
 void setup() 
 { 
 	 Serial.begin(115200); 
@@ -43,6 +47,8 @@ void setup()
    pinMode(trotarPin, INPUT_PULLUP);
    currentGirarState = digitalRead(girarPin);
 
+   pinMode(pularPin, INPUT_PULLUP);
+   currentPularState = digitalRead(pularPin);
 
    //setup do wifi
 	 radio.begin(); 
@@ -69,6 +75,9 @@ void loop()
   lastTrotarState = currentTrotarState; 
   currentTrotarState = digitalRead(trotarPin);
 
+  lastPularState = currentPularState; 
+  currentPularState = digitalRead(pularPin);
+
   //chama a função correspondente para cada botão
   if(lastAndarState == HIGH && currentAndarState == LOW) {
     Serial.println("The button is pressed");
@@ -84,6 +93,11 @@ void loop()
     Serial.println("The button is pressed");
     // envia os dados
     sendTrotar();
+  }
+  if(lastPularState == HIGH && currentPularState == LOW) {
+    Serial.println("The button is pressed");
+    // envia os dados
+    sendPular();
   }
 } 
 
@@ -107,6 +121,15 @@ void sendGirar(){
 
 void sendTrotar(){
   payload.data1 = 't'; 
+	radio.write(&payload, sizeof(payload)); 
+	Serial.print("Data1:"); 
+	Serial.println(payload.data1); 
+	Serial.println("Sent"); 
+	delay(INTERVAL_MS_TRANSMISSION); 
+}
+
+void sendPular(){
+  payload.data1 = 'p'; 
 	radio.write(&payload, sizeof(payload)); 
 	Serial.print("Data1:"); 
 	Serial.println(payload.data1); 
